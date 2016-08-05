@@ -1,16 +1,16 @@
 # -*- coding:utf-8 -*-
 # 入口文件
+import json
+from os.path import realpath
 from time import sleep
 
 from request.dload import dload,basedoc
 from save.excel import Excel
-import json
-from os.path import realpath
 
 excel = None
 def create_excel(from_page, end_page):
     global excel
-    file_name = "Excel/luoji_" + str(from_page) + "_" + str(end_page) + ".xlsx"
+    file_name = "C://Excel/luoji_" + str(from_page) + "_" + str(end_page) + ".xlsx"
     # 以追加的方式打开文件
     excel = Excel(file_name, rebuild=False)
     excel.title([u"姓名", u"手机号码", u"地址", u"车型", u"车牌号码", u"车长", u"吨位", u"始发地", u"目的地", u"罗计ID"])
@@ -62,7 +62,7 @@ def cal(doc):
 
     
 dl = dload(islog=True,console=True)
-cookies = dl.get_cookie_from_file(realpath("demo/luoji_cookie.json"))
+cookies = dl.get_cookie_from_file(realpath("C://Cookies/luoji_cookie.json"))
 header = {
     'Accept':'*/*',
     'Accept-Encoding':'gzip, deflate, sdch',

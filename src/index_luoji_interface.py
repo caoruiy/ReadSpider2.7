@@ -18,12 +18,12 @@ class LuoJi(Index):
 config = {
     "url":'http://www.loji.com/vehicleteam/search',
     "runlist":[(1,3)],
-    "file":"Excel2/luoji.xlsx",
+    "file": "C://Excel/new/luoji.xlsx",
     "title":[u"姓名", u"手机号码", u"地址", u"车型", u"车牌号码", u"车长", u"吨位", u"始发地", u"目的地", u"罗计ID"],
     "amount":20,
     "maxfor":20,
     "request":{
-        "cookies":"demo/luoji_cookie.json",
+        "cookies": "C://Cookies/luoji_cookie.json",
         "headers":{},
     },
 }
