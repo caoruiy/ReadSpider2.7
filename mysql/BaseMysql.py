@@ -274,25 +274,42 @@ class BaseMysql(object):
         else:
             return self.exec_sql(sql)
 
-    def insert_and_update(self):
+    def insert_and_update(self, table=None, cols=None, console=False):
         '''
         存在数据时，更新数据
         不存在数据时，插入数据
         '''
-        pass
+        self._del_table(table)
+        if not cols:
+            raise SQLException("cols and values must be point out in insert SQL, so cols argument can't be empty")
+        sql = self._insert_update_sql.format(
+            cols=",".join([str(item) for item in cols]),
+            table=table or self._table,
+            values=",".join(["'" + str(cols[item]) + "'" for item in cols]),
+            updates = ",".join([str(item)+"='"+str(cols[item])+"'" for item in cols])
+        )
+        if console:
+            return sql
+        else:
+            return self.exec_sql(sql)
 
-    def exec_sql(self, sql):
+
+    def exec_sql(self, sql, console=False):
         """
         执行具体的SQL语句
-        :param sql:
+        :param sql: 具体的SQL
+        :param console: 是否console
         :return:
         """
+        if console:
+            return sql
         try:
             self._connect(*self._conn_args, **self._conn_kwargs)
             self._cursor.execute(sql)
             self._conn.commit()
         except Exception as e:
-            self._conn.rollback()
+            if self._conn:
+                self._conn.rollback()
             print e
         else:
             self.rowcount = self._cursor.rowcount
@@ -306,7 +323,8 @@ class BaseMysql(object):
         self._conn.close()
 
     def __del__(self):
-        self._conn.close()
+        if self._conn:
+            self._conn.close()
 
     def trans(self):
         '事务操作'
