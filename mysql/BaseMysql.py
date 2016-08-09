@@ -1,7 +1,9 @@
 # -*- coding=utf-8 -*-
-
 try:
     import MySQLdb
+    import json
+    import time
+    from os.path import realpath
 except Exception as e:
     print('\033[1;31;0m'+"[Import Error]:"+'\033[0m'+" The imported modules are not exist: "+str(e))
 
@@ -31,6 +33,8 @@ class BaseMysql(object):
     _delete_sql = "DELETE FROM {table} WHERE {where}"
 
     def __init__(self, *args, **kwargs):
+        # 表结构临时文件保存位置
+        self._temp_dir = None
         if args or kwargs:
             self._conn_args = args
             self._conn_kwargs = kwargs
@@ -325,6 +329,74 @@ class BaseMysql(object):
     def __del__(self):
         if self._conn:
             self._conn.close()
+
+    def _desc(self,timeout):
+        """
+        获取表结构
+        :param timeout: 过期时间，单位小时
+        :return: 表结构dict
+        """
+        sql = "desc " + self._table
+        structure = self.exec_sql(sql)
+        sdict = {item['Field']: item for item in structure}
+
+        sdict['timestamp'] = time.time()
+        # 过期时间转化成秒
+        sdict['overtime'] = timeout * 60 * 60
+        with self._get_tmp_file('w') as f:
+            json.dump(sdict, f)
+        return sdict
+
+    def desc(self, timeout=12, absupdate=False):
+        """
+        获得表结构
+        :param timeout: 过期时间，默认12小时
+        :param absupdate: 忽略过期时间，立即更新表结构
+        :return:
+        """
+        if not self._table:
+            raise SQLException("You havn't set table name ，you can set: self._table")
+        try:
+            if absupdate:
+                raise Exception('')
+            with self._get_tmp_file('r') as f:
+                sdict = json.load(f)
+            if sdict['timestamp']+sdict['overtime'] < time.time():
+                raise Exception('')
+
+        except Exception as e:
+            sdict = self._desc(timeout)
+        del sdict['timestamp']
+        del sdict['overtime']
+        return sdict
+
+    def _get_tmp_file(self,mod):
+        if not self._temp_dir:
+            raise SQLException("The temporary dir isn't exist so that cann't save the table structure, you can set：self._tmp_dir=DIR")
+        path_ = realpath( self._temp_dir+"/"+self._table)
+        return open( path_, mod )
+
+    def _set_cols(self):
+        desc = self.desc()
+        stru = {}
+        for key in desc:
+            stru[key] = {
+                'field' : desc[key]['Field'],
+                'default' : desc[key]['Default'],
+                'key' : desc[key]['Key'],
+                'null' : desc[key]['Null'],
+                'type' : desc[key]['Type'],
+            }
+        return stru
+
+    def set_cols(self,cols):
+        """
+        检查当前输入的cols，在表中是否存在
+        该方法需要在子类中重写，但不强制
+        :param cols: 列列表
+        :return:
+        """
+        return True
 
     def trans(self):
         '事务操作'
