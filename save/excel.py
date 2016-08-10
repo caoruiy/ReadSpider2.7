@@ -13,39 +13,39 @@ except Exception as e:
 # 读写Excel封装
 class Excel(object):
 
-    #当前操作的文件完整路径
-    file= ''
+    # 当前操作的文件完整路径
+    file = ''
     _file_path = []
 
-    # # 错误码 0表示没有错误
-    code=0
+    # 错误码 0表示没有错误
+    code = 0
 
-    # # 错误信息
-    msg=None
+    # 错误信息
+    msg = None
 
-    # # 实例化的Excel文件对象
+    # 实例化的Excel文件对象
     _workbook = None
     _read_workbook = None
 
-    # # 实例化的sheet列表
+    # 实例化的sheet列表
     _worksheet = {}
 
-    # # 当前操作的sheet名称
+    # 当前操作的sheet名称
     _sheet_name = None
 
-    # # 待写入sheet的数据
+    # 待写入sheet的数据
     _data = {}
 
-    # # 当前操作的最大行号
+    # 当前操作的最大行号
     _last_row = -1
 
     # 错误码
     # 写入Excel失败
-    _WRITE_EXCEL_ERROR  = 1
+    _WRITE_EXCEL_ERROR = 1
     # 创建文件失败
-    _MAKE_DIR_ERROR     = 2
+    _MAKE_DIR_ERROR = 2
     # 打开的文件不存在
-    _NO_EXIST_FILE      = 3
+    _NO_EXIST_FILE = 3
 
     def __init__(self, file=None, sheet=None, rebuild=True):
         self._file_path = []
@@ -56,8 +56,6 @@ class Excel(object):
         self._worksheet = {}
         self._data = {}
         self._last_row = -1
-
-
         file = path.realpath(file or "Excel\\"+time.strftime("%Y%m%d-%H%M%S", time.localtime(time.time()))+".xlsx")
         self._file_path.append(file)
         # 创建路径中不存在的文件夹
@@ -222,7 +220,7 @@ class Excel(object):
 
                     mkdir('\\'.join(self._file_path[:index+1]))
                 except OSError as e:
-                    self._print_error(self._MAKE_DIR_ERROR, "make dir error: " +e)
+                    self._print_error(self._MAKE_DIR_ERROR, "make dir error: " + e)
 
         return file
 
@@ -237,8 +235,8 @@ class Excel(object):
         :return: 错误数据的字典
         """
         return {
-            'code':self.code,
-            'msg':self.msg
+            'code': self.code,
+            'msg': self.msg
         }
 
     def _clear_error(self):
@@ -257,20 +255,22 @@ class Excel(object):
         self.code = code
         self.msg = msg
         # print('\033[1;31;0m' + "[xml Error]:" + '\033[0m' + str(self._e))
-        print('\033[1;31;0m[' + msg+"]\033[0m")
-        print( traceback.format_exc() )
+        print ('\033[1;31;0m[' + msg+"]\033[0m")
+        print (traceback.format_exc())
 
 
 class Sheet(object):
     _sheet = None
 
-    def __init__(self,sheet):
-        self.__dict__ = sheet.__dict__
+    def __init__(self, sheet):
+        # self.__dict__ = sheet.__dict__
         self._sheet = sheet
 
     def __call__(self, row=0, col=0):
         return self._sheet.cell(row, col).value
 
-
-
-
+    def __getattr__(self, item):
+        if item in self._sheet.__dict__:
+            return self._sheet.__dict__[item]
+        else:
+            raise AttributeError('this attribute [ '+item+' ] is not exist')
