@@ -1,4 +1,4 @@
-# -*- coding -*-
+# -*- coding=utf-8 -*-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -25,11 +25,12 @@ class SeleniumLuoji(SeleniumCookieHeader):
                 EC.presence_of_element_located((By.CLASS_NAME, "headerUl"))
             )
         except Exception as e:
-            print e
+            print u"元素定位失败",e
+            self.get_cookie_header(driver)
         else:
             self.get_cookie_header(driver)
 
 
 
 luoji = SeleniumLuoji()
-luoji.init("http://www.loji.com/owner/login")
+luoji.init("http://www.loji.com/owner/login", "luoji_cookie.json")

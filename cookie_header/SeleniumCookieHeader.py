@@ -7,12 +7,14 @@ class SeleniumCookieHeader(object):
 
     # 要打开的网址
     url = None
+    file_name = None
 
     def __init__(self):
         pass
 
-    def init(self, url):
+    def init(self, url, file_name):
         self.url = url
+        self.file_name = file_name
         self.open()
 
     def open(self):
@@ -25,9 +27,9 @@ class SeleniumCookieHeader(object):
             print  cookie['name']," : ", cookie['value']
             dict_cookie[cookie['name']] = cookie['value']
         try:
-            file = open( "luoji_cookie.json", "w")
+            file = open( self.file_name, "w")
         except IOError as ioe:
-            print str(ioe)
+            print "IOError:",str(ioe)
         else:
             json.dump(dict_cookie, file)
             file.close()
