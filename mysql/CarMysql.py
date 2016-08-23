@@ -21,8 +21,8 @@ class CarMysql(BaseMysql):
     def add(self,item):
         """
         添加一条新的数据
-        :param item:
-        :return:
+        :param item: 字段字典
+        :return: 插入是否成功标志
         """
         keys = ["name", "mobile", "address", "cartype", "carid", "carlength", "stowage", "oftenAddress", "beginAddress",
                 "endAddress", "luojiID", "position", "lngLat", "img"]
@@ -31,11 +31,11 @@ class CarMysql(BaseMysql):
         if address:
             groups = address.groups()
             if groups[0]:
-                cols['province'] = groups[0]
+                cols['province'] = groups[0][:len(groups[0])-1]     #省
             if groups[1]:
-                cols['city'] = groups[1]
+                cols['city'] = groups[1][:len(groups[1])-1]         #市
             if groups[2]:
-                cols['area'] = groups[2]
+                cols['area'] = groups[2]       # 区 | 县 | 乡
         self.insert(cols=cols)
         return self.rowcount
 
