@@ -21,7 +21,7 @@ class BaseMysql(object):
     _select_sql = "SELECT {cols} FROM {table} WHERE {where} "
 
     # insert-SQL
-    _insert_sql = "INSERT INTO {table}({cols}) values({values}) "
+    _insert_sql = "INSERT IGNORE INTO {table}({cols}) values({values}) "
 
     #update-SQL
     _update_sql = "UPDATE {table} {sets} WHERE {where} "
@@ -32,6 +32,9 @@ class BaseMysql(object):
     #delete-SQL
     _delete_sql = "DELETE FROM {table} WHERE {where}"
 
+    rowcount = 0
+
+    description = (None, None, None, None, None, None, None)
     def __init__(self, *args, **kwargs):
         # 表结构临时文件保存位置
         self._temp_dir = None
@@ -214,6 +217,7 @@ class BaseMysql(object):
         self._del_table(table)
         if not cols:
             raise SQLException("cols and values must be point out in insert SQL, so cols argument can't be empty")
+
         sql = self._insert_sql.format(
             cols=",".join([str(item) for item in cols]),
             table=table or self._table,
@@ -314,7 +318,7 @@ class BaseMysql(object):
         except Exception as e:
             if self._conn:
                 self._conn.rollback()
-            print e
+            print e[1]
         else:
             self.rowcount = self._cursor.rowcount
             self.description = self._cursor.description

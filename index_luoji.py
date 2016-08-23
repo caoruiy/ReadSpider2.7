@@ -1,24 +1,31 @@
 # -*- coding:utf-8 -*-
 # 入口文件
 import json
+import sys
 from os.path import realpath
 from time import sleep
 
+from mysql.CarMysql import CarMysql
 from request.dload import dload,basedoc
 from save.excel import Excel
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 excel = None
+car = CarMysql()
 def create_excel(from_page, end_page):
     global excel
     file_name = "Excel/luoji_" + str(from_page) + "_" + str(end_page) + ".xlsx"
     # 以追加的方式打开文件
     excel = Excel(file_name, rebuild=False)
-    excel.title([u"姓名", u"手机号码", u"地址", u"车型", u"车牌号码", u"车长", u"吨位", u"始发地", u"目的地", u"罗计ID"])
+    excel.title([u"姓名", u"手机号码", u"地址", u"车型", u"车牌号码", u"车长(米)", u"吨位", u"常驻地",u"始发地", u"目的地", u"罗计ID", u"当前位置", u"经纬度", u"车辆图片"])
     return excel.file
 
 @basedoc
 def cal(doc):
     global excel
+
     try:
         doc = doc.p.get_text()
     except:
@@ -30,12 +37,13 @@ def cal(doc):
     except:
         print("--------------无法解析JSON---------")
         return False
-    # print data
+
     if not data['code']:
         data = data['values']['pageResult']['content']
         if len(data) == 0:
             print("没有更多数据啦....")
             exit()
+        sum = 0 # 新增数据条数
         for item in data:
             if not isinstance(item, dict) or (item['vehicle'] == None):
                 continue
@@ -45,14 +53,23 @@ def cal(doc):
                 item['vehicle']['address'],
                 item['typeName'],
                 item['vehicleNum'],
-                item['vehicle']['lengthWithUnit'],
-                item['vehicle']['capacityWithUnit'],
+                item['vehicle']['length']/100,
+                item['vehicle']['capacity']/1000,
+                ','.join(item['oftenAddressDetail']),
                 item['beginAddress'],
                 item['endAddress'],
-                item['id']
+                item['id'],
+                item['currentAddress'],
+                item["lngLat"],
+                item['img300x300'],
             ]
-            excel.write(loc_list)
-        excel.save()
+            insert_status = car.add(loc_list)
+            sum += insert_status
+            if insert_status:
+                excel.write(loc_list)
+        print u"新增" + str(sum) + "条数据"
+        if sum:
+            excel.save()
 
     else:
         print(u"获取数据失败，请检查代码 : 网站提示：")
@@ -114,7 +131,7 @@ def run(page, count, last_page=None,  maxfor=20):
 if __name__ == '__main__':
     # 开始编号
     # 每篇文档收录多少页数据
-    run(14800,200)
+    run(1, 200, 2)
 
 # 备忘
 # 漏掉的数据：
